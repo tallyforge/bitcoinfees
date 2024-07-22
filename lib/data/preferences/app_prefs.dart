@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class AppPrefs {
+class AppPrefs with ChangeNotifier {
   static AppPrefs? _instance;
   factory AppPrefs() {
     _instance ??= AppPrefs._();
@@ -21,6 +22,7 @@ class AppPrefs {
   Future<void> _initialize() async {
     _prefs = await SharedPreferences.getInstance();
     await _load();
+    _readyCompleter.complete();
   }
 
   Future<void> _load() async {
@@ -32,8 +34,14 @@ class AppPrefs {
     averageFeeThresholdRatio = _prefs.getDouble(_averageFeeThresholdRatioKey) ?? averageFeeThresholdRatio;
   }
 
-  Future<void> _save() async {
+  Future<void> save() async {
+    notifyListeners();
 
+    _prefs.setBool(_feeThresholdEnabledKey, feeThresholdEnabled);
+    _prefs.setInt(_feeNotificationThresholdKey, feeNotificationThreshold);
+    _prefs.setBool(_shortTermAverageFeeEnabledKey, shortTermAverageFeeEnabled);
+    _prefs.setBool(_longTermAverageFeeEnabledKey, longTermAverageFeeEnabled);
+    _prefs.setDouble(_averageFeeThresholdRatioKey, averageFeeThresholdRatio);
   }
 
   /// Whether absolute fee threshold notifications are enabled.

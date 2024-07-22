@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import 'package:bitcoinfees/data/fee_source.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:tallyforge_bitcoin_fees/data/fee_source.dart';
 import 'package:http/http.dart' as http;
 
 part 'bitcoinerlive.g.dart';

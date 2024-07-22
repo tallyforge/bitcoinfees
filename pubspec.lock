@@ -257,6 +257,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  flex_seed_scheme:
+    dependency: "direct main"
+    description:
+      name: flex_seed_scheme
+      sha256: cb5b7ec4ba525d9846d8992858a1c6cfc88f9466d96b8850e2a061aa5f682539
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -464,6 +472,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  nested:
+    dependency: transitive
+    description:
+      name: nested
+      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   objectid:
     dependency: transitive
     description:
@@ -544,6 +560,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
+  provider:
+    dependency: "direct main"
+    description:
+      name: provider
+      sha256: c8a055ee5ce3fd98d6fc872478b03823ffdb448699c6ebdbbc71d59b596fd48c
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.2"
   pub_semver:
     dependency: transitive
     description:

@@ -27,7 +27,7 @@ class NotificationSender {
   }
 
   Future<void> sendNotification(NotificationType type, {required String title, String body = ""}) async {
-    plugin.show(0, title, body, NotificationDetails(
+    plugin.show(type.index, title, body, NotificationDetails(
       android: AndroidNotificationDetails(
         type.notificationId, 'Bitcoin Fees Low',
         channelDescription: "Notifications sent when Bitcoin fees are below your set threshold.",
@@ -45,6 +45,7 @@ enum NotificationType {
   feesBelowThreshold("bitcoin-fees-below-threshold");
 
   final String notificationId;
+  int get intId => index;
 
   const NotificationType(this.notificationId);
 }

@@ -1,15 +1,15 @@
 
 import 'dart:ui';
 
+import 'package:bitcoinfees/data/fee_source.dart';
+import 'package:bitcoinfees/data/history/database.dart';
+import 'package:bitcoinfees/data/preferences/app_prefs.dart';
+import 'package:bitcoinfees/data/source/bitcoinerlive.dart';
+import 'package:bitcoinfees/notifications.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:realm/realm.dart';
-import 'package:tallyforge_bitcoin_fees/data/fee_source.dart';
-import 'package:tallyforge_bitcoin_fees/data/history/database.dart';
-import 'package:tallyforge_bitcoin_fees/data/preferences/app_prefs.dart';
-import 'package:tallyforge_bitcoin_fees/data/source/bitcoinerlive.dart';
-import 'package:tallyforge_bitcoin_fees/notifications.dart';
 import 'package:workmanager/workmanager.dart';
 
 @pragma("vm:entry-point")
@@ -48,7 +48,10 @@ Future<bool> runBackgroundTasks(List<FeeEstimate> estimates) async {
 }
 
 Future<bool> _processFeeEstimates(List<FeeEstimate> estimates) async {
-  if(estimates.isEmpty) return false;
+  if(estimates.isEmpty) {
+    debugPrint("Empty estimates");
+    return false;
+  }
 
   var db = RealmDatabase();
 
@@ -61,6 +64,7 @@ Future<bool> _processFeeEstimates(List<FeeEstimate> estimates) async {
       return false;
     }
   }
+  debugPrint("Stored estimates in DB");
   await _checkFeeChanges(db, estimates);
 
   return true;
@@ -78,12 +82,17 @@ Future<void> _storeFeeEstimates(RealmDatabase db, List<FeeEstimate> estimates) a
 
 Future<void> _checkFeeChanges(RealmDatabase db, List<FeeEstimate> estimates) async {
   var appPrefs = AppPrefs();
+  await appPrefs.ready;
+
   var now = DateTime.now();
 
   int latestFee = estimates.first.satsPerVbyte;
   var sender = NotificationSender();
 
+  debugPrint("Fee checks: ${appPrefs.feeThresholdEnabled} ${appPrefs.shortTermAverageFeeEnabled} ${appPrefs.longTermAverageFeeEnabled}");
+
   if(appPrefs.checkAverageFees) {
+    debugPrint("Checking average fees: short ${appPrefs.shortTermAverageFeeEnabled} long ${appPrefs.longTermAverageFeeEnabled}");
     var weekTimestamp = now.subtract(const Duration(days: 7));
     var monthTimestamp = now.subtract(const Duration(days: 30));
     var feesThisWeek = _getFeesSince(db, weekTimestamp);
@@ -96,11 +105,14 @@ Future<void> _checkFeeChanges(RealmDatabase db, List<FeeEstimate> estimates) asy
             .map((e) => e.estimates.first.satsPerVbyte)
             .average;
 
-        sender.sendNotification(
-          NotificationType.feesBelowShortAverage,
-          title: "Fees below weekly average",
-          body: "Fees of $latestFee are below the weekly average of ${weekAverage.toStringAsFixed(1)}",
-        );
+        debugPrint("Latest fee vs short average: $latestFee $weekAverage");
+        if(latestFee <= appPrefs.averageFeeThresholdRatio * weekAverage) {
+          sender.sendNotification(
+            NotificationType.feesBelowShortAverage,
+            title: "Fees below weekly average",
+            body: "Fees of $latestFee sats/vbyte are below the weekly average of ${weekAverage.toStringAsFixed(1)} sats/vbyte",
+          );
+        }
       }
     }
 
@@ -111,21 +123,25 @@ Future<void> _checkFeeChanges(RealmDatabase db, List<FeeEstimate> estimates) asy
             .map((e) => e.estimates.first.satsPerVbyte)
             .average;
 
-        sender.sendNotification(
-          NotificationType.feesBelowLongAverage,
-          title: "Fees below monthly average",
-          body: "Fees of $latestFee are below the monthly average of ${monthAverage.toStringAsFixed(1)}",
-        );
+        debugPrint("Latest fee vs short average: $latestFee $monthAverage");
+        if(latestFee <= appPrefs.averageFeeThresholdRatio * monthAverage) {
+          sender.sendNotification(
+            NotificationType.feesBelowLongAverage,
+            title: "Fees below monthly average",
+            body: "Fees of $latestFee sats/vbyte are below the monthly average of ${monthAverage.toStringAsFixed(1)} sats/vbyte",
+          );
+        }
       }
     }
   }
 
   if(appPrefs.feeThresholdEnabled) {
+    debugPrint("Checking threshold fees");
     if(latestFee <= appPrefs.feeNotificationThreshold) {
       sender.sendNotification(
         NotificationType.feesBelowThreshold,
         title: "Fees below threshold",
-        body: "Fees of $latestFee are below your threshold of ${appPrefs.feeNotificationThreshold}",
+        body: "Fees of $latestFee sats/vbyte are below your threshold of ${appPrefs.feeNotificationThreshold} sats/vbyte",
       );
     }
   }
