@@ -60,8 +60,91 @@ class _HomeScreenState extends State<HomeScreen> {
     t.cancel();
   }
 
+  Widget _buildFeeEstimateColumn(String label, int feeValue, Color labelColor) {
+    String tooltipMessage = switch(label) {
+      "Low" => "Value in sats/vByte.\n\nWhile not guaranteed, a transaction at this fee rate should be confirmed on the Bitcoin blockchain within 24 hours.",
+      "Mid" => "Value in sats/vByte.\n\nWhile not guaranteed, a transaction at this fee rate should be confirmed on the Bitcoin blockchain within 3 hours.",
+      "High" => "Value in sats/vByte.\n\nWhile not guaranteed, a transaction at this fee rate should be confirmed on the Bitcoin blockchain within 1 hour.",
+      _ => "",
+    };
+
+    return Expanded(
+      child: GestureDetector(
+        onTapDown: (details) {
+          //final RenderBox box = context.findRenderObject() as RenderBox;
+          //final Offset position = box.localToGlobal(details.localPosition);
+          
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: Text(
+                  tooltipMessage,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: labelColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "$feeValue",
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Get the sorted estimates and select first, middle, and last
+    var sortedEstimates = List<FeeEstimate>.from(estimates)
+      ..sort((a, b) => a.timeToConfirmation.compareTo(b.timeToConfirmation));
+    
+    if (sortedEstimates.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(widget.title),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AppPrefsScreen()));
+              },
+            )
+          ],
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    var highFee = sortedEstimates.first.satsPerVbyte;
+    var midFee = sortedEstimates[sortedEstimates.length ~/ 2].satsPerVbyte;
+    var lowFee = sortedEstimates.last.satsPerVbyte;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -75,12 +158,28 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            for(var e in estimates)
-              Text("${(e.timeToConfirmation.inMinutes / 10).round()} blocks: ${e.satsPerVbyte} sats/vByte")
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 32),
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.1),
+                  _buildFeeEstimateColumn("Low", lowFee, Colors.amber),
+                  const Spacer(),
+                  _buildFeeEstimateColumn("Mid", midFee, Theme.of(context).colorScheme.primary),
+                  const Spacer(),
+                  _buildFeeEstimateColumn("High", highFee, Colors.green),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.1),
+                ],
+              ),
+            ),
           ],
         ),
       ),

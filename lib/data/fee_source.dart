@@ -1,5 +1,4 @@
 
-import 'package:realm/realm.dart';
 import 'package:result_type/result_type.dart';
 
 abstract interface class FeeSource {
