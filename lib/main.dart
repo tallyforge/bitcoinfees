@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const HomeScreen(title: 'TallyForge Fees'),
+        home: const HomeScreen(title: 'Bitcoin Fees'),  // by TallyForge
       ),
     );
   }
