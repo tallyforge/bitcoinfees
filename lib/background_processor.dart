@@ -8,7 +8,6 @@ import 'package:bitcoinfees/data/source/bitcoinerlive.dart';
 import 'package:bitcoinfees/notifications.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:realm/realm.dart';
 import 'package:workmanager/workmanager.dart';
 
