@@ -80,7 +80,9 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             for(var e in estimates)
-              Text("${(e.timeToConfirmation.inMinutes / 10).round()} blocks: ${e.satsPerVbyte} sats/vByte")
+              Text("${(e.timeToConfirmation.inMinutes / 10).round()} blocks: ${e.satsPerVbyte} sats/vByte",
+                style: const TextStyle(fontSize: 18),
+              )
           ],
         ),
       ),

@@ -95,40 +95,59 @@ Future<void> _checkFeeChanges(RealmDatabase db, List<FeeEstimate> estimates) asy
     debugPrint("Checking average fees: short ${appPrefs.shortTermAverageFeeEnabled} long ${appPrefs.longTermAverageFeeEnabled}");
     var weekTimestamp = now.subtract(const Duration(days: 7));
     var monthTimestamp = now.subtract(const Duration(days: 30));
-    var feesThisWeek = _getFeesSince(db, weekTimestamp);
-    var feesThisMonth = _getFeesSince(db, monthTimestamp);
+    String comparison = appPrefs.averageFeeThresholdRatio > 1 ? "above" : "below";
 
     if(appPrefs.shortTermAverageFeeEnabled) {
+      var feesThisWeek = _getFeesSince(db, weekTimestamp);
+
       if (feesThisWeek.isNotEmpty &&
           now.difference(feesThisWeek.first.timestamp) > const Duration(days: 3)) {
         var weekAverage = feesThisWeek
             .map((e) => e.estimates.first.satsPerVbyte)
             .average;
 
+        bool test;
+        if(appPrefs.averageFeeThresholdRatio >= 1) {
+          test = latestFee >= appPrefs.averageFeeThresholdRatio * weekAverage;
+        }
+        else {
+          test = latestFee <= appPrefs.averageFeeThresholdRatio * weekAverage;
+        }
+
         debugPrint("Latest fee vs short average: $latestFee $weekAverage");
-        if(latestFee <= appPrefs.averageFeeThresholdRatio * weekAverage) {
+        if(test) {
           sender.sendNotification(
             NotificationType.feesBelowShortAverage,
-            title: "Fees below weekly average",
-            body: "Fees of $latestFee sats/vbyte are below the weekly average of ${weekAverage.toStringAsFixed(1)} sats/vbyte",
+            title: "Fees $comparison weekly average",
+            body: "Fees of $latestFee sats/vbyte are $comparison the weekly average of ${weekAverage.toStringAsFixed(1)} sats/vbyte",
           );
         }
       }
     }
 
     if(appPrefs.longTermAverageFeeEnabled) {
+      var feesThisMonth = _getFeesSince(db, monthTimestamp);
+
       if (feesThisMonth.isNotEmpty
           && now.difference(feesThisMonth.first.timestamp) > const Duration(days: 15)) {
         var monthAverage = feesThisMonth
             .map((e) => e.estimates.first.satsPerVbyte)
             .average;
 
+        bool test;
+        if(appPrefs.averageFeeThresholdRatio >= 1) {
+          test = latestFee >= appPrefs.averageFeeThresholdRatio * monthAverage;
+        }
+        else {
+          test = latestFee <= appPrefs.averageFeeThresholdRatio * monthAverage;
+        }
+
         debugPrint("Latest fee vs short average: $latestFee $monthAverage");
         if(latestFee <= appPrefs.averageFeeThresholdRatio * monthAverage) {
           sender.sendNotification(
             NotificationType.feesBelowLongAverage,
-            title: "Fees below monthly average",
-            body: "Fees of $latestFee sats/vbyte are below the monthly average of ${monthAverage.toStringAsFixed(1)} sats/vbyte",
+            title: "Fees $comparison monthly average",
+            body: "Fees of $latestFee sats/vbyte are $comparison the monthly average of ${monthAverage.toStringAsFixed(1)} sats/vbyte",
           );
         }
       }
@@ -137,11 +156,21 @@ Future<void> _checkFeeChanges(RealmDatabase db, List<FeeEstimate> estimates) asy
 
   if(appPrefs.feeThresholdEnabled) {
     debugPrint("Checking threshold fees");
-    if(latestFee <= appPrefs.feeNotificationThreshold) {
+    bool test;
+    String comparison;
+    if(appPrefs.notifyHighFees) {
+      test = latestFee >= appPrefs.feeNotificationThreshold;
+      comparison = "above";
+    }
+    else {
+      test = latestFee <= appPrefs.feeNotificationThreshold;
+      comparison = "below";
+    }
+    if(test) {
       sender.sendNotification(
         NotificationType.feesBelowThreshold,
-        title: "Fees below threshold",
-        body: "Fees of $latestFee sats/vbyte are below your threshold of ${appPrefs.feeNotificationThreshold} sats/vbyte",
+        title: "Fees $comparison threshold",
+        body: "Fees of $latestFee sats/vbyte are $comparison your threshold of ${appPrefs.feeNotificationThreshold} sats/vbyte",
       );
     }
   }

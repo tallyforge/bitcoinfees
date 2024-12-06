@@ -4,21 +4,23 @@ class NumberInputDialog<T extends num> extends StatefulWidget {
   const NumberInputDialog({
     super.key,
     this.title = "Enter number",
+    required this.floatingPoint,
     required this.initialValue,
   });
 
   final String title;
+  final bool floatingPoint;
   final T initialValue;
 
   @override
   State<NumberInputDialog> createState() => _NumberInputDialogState<T>();
 
   static Future<double?> showForDouble(BuildContext context, {String title = "Enter number", double initialValue = 0}) {
-    return showDialog<double>(context: context, builder: (context) => NumberInputDialog<double>(title: title, initialValue: initialValue));
+    return showDialog<double>(context: context, builder: (context) => NumberInputDialog<double>(title: title, initialValue: initialValue, floatingPoint: true));
   }
 
   static Future<int?> showForInt(BuildContext context, {String title = "Enter number", int initialValue = 0}) {
-    return showDialog<int>(context: context, builder: (context) => NumberInputDialog<int>(title: title, initialValue: initialValue));
+    return showDialog<int>(context: context, builder: (context) => NumberInputDialog<int>(title: title, initialValue: initialValue, floatingPoint: false));
   }
 }
 
@@ -33,7 +35,7 @@ class _NumberInputDialogState<T extends num> extends State<NumberInputDialog<T>>
         controller: controller,
         keyboardType: TextInputType.numberWithOptions(
           signed: false,
-          decimal: T is double,
+          decimal: widget.floatingPoint,
         ),
       ),
       actions: [
@@ -53,7 +55,7 @@ class _NumberInputDialogState<T extends num> extends State<NumberInputDialog<T>>
               return;
             }
 
-            if(T is int) {
+            if(!widget.floatingPoint) {
               Navigator.of(context).pop(n.round());
             }
             else {

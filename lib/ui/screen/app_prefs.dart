@@ -55,6 +55,18 @@ class _AppPrefsScreenState extends State<AppPrefsScreen> {
                   });
                 },
               ),
+              CheckboxListTile(
+                title: const Text("Notify on high fees?"),
+                subtitle: Text(prefs.notifyHighFees ? "Yes" : "No"),
+                value: prefs.notifyHighFees,
+                onChanged: (value) {
+                  if(value == null) return;
+
+                  setState(() {
+                    prefs.notifyHighFees = value;
+                  });
+                },
+              ),
               ListTile(
                 title: const Text("Notification threshold"),
                 enabled: prefs.feeThresholdEnabled,

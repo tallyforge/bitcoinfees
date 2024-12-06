@@ -28,6 +28,7 @@ class AppPrefs with ChangeNotifier {
   Future<void> _load() async {
     // Defaults are the starting value of the properties
     feeThresholdEnabled = _prefs.getBool(_feeThresholdEnabledKey) ?? feeThresholdEnabled;
+    notifyHighFees = _prefs.getBool(_notifyHighFeesKey) ?? notifyHighFees;
     feeNotificationThreshold = _prefs.getInt(_feeNotificationThresholdKey) ?? feeNotificationThreshold;
     shortTermAverageFeeEnabled = _prefs.getBool(_shortTermAverageFeeEnabledKey) ?? shortTermAverageFeeEnabled;
     longTermAverageFeeEnabled = _prefs.getBool(_longTermAverageFeeEnabledKey) ?? longTermAverageFeeEnabled;
@@ -38,6 +39,7 @@ class AppPrefs with ChangeNotifier {
     notifyListeners();
 
     _prefs.setBool(_feeThresholdEnabledKey, feeThresholdEnabled);
+    _prefs.setBool(_notifyHighFeesKey, notifyHighFees);
     _prefs.setInt(_feeNotificationThresholdKey, feeNotificationThreshold);
     _prefs.setBool(_shortTermAverageFeeEnabledKey, shortTermAverageFeeEnabled);
     _prefs.setBool(_longTermAverageFeeEnabledKey, longTermAverageFeeEnabled);
@@ -47,6 +49,10 @@ class AppPrefs with ChangeNotifier {
   /// Whether absolute fee threshold notifications are enabled.
   bool feeThresholdEnabled = false;
   static const _feeThresholdEnabledKey = "fee_notification_enabled";
+
+  /// Whether absolute fee threshold notifications are enabled.
+  bool notifyHighFees = false;
+  static const _notifyHighFeesKey = "notify_high_fees";
 
   /// The fee in sats per vbyte that should trigger a fee threshold notification.
   int feeNotificationThreshold = 10;
